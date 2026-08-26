@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { C } from "./tokens/colors";
 import { useLocalState } from "./utils/useLocalState";
+import { useRoute } from "./utils/useRoute";
 import NavBar from "./components/NavBar";
 import HomeScreen from "./screens/HomeScreen";
 import RemindersScreen from "./screens/RemindersScreen";
@@ -24,7 +24,7 @@ const DEFAULT_CONTACTS = [
 ];
 
 export default function VivaBem() {
-  const [screen, setScreen] = useState("home");
+  const [screen, setScreen] = useRoute();
   const [reminders,    setReminders]    = useLocalState("reminders",    DEFAULT_REMINDERS);
   const [appointments, setAppointments] = useLocalState("appointments", DEFAULT_APPOINTMENTS);
   const [contacts,     setContacts]     = useLocalState("contacts",     DEFAULT_CONTACTS);
