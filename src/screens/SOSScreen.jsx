@@ -2,18 +2,29 @@ import { useState, useEffect } from "react";
 import { C } from "../tokens/colors";
 import { speak } from "../utils/speak";
 import { Btn, Card, ScreenHeader } from "../components/UI";
-import Icon from "../components/Icon";
+import { getLocation, buildSosMessage, whatsappLink, smsLink } from "../utils/sos";
 
 const SOSScreen = ({ contacts, setScreen }) => {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     speak("Atenção! Tela de emergência aberta. Toque em Pedir Ajuda para alertar seus contatos.");
   }, []);
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    setSending(true);
+    speak("Preparando seu pedido de ajuda. Aguarde um instante.");
+    const loc = await getLocation();
+    setMessage(buildSosMessage(loc));
+    setSending(false);
     setSent(true);
-    speak("Pedido de ajuda enviado. Seus contatos serão avisados. Fique calmo, a ajuda está chegando.");
+    speak(
+      contacts.length > 0
+        ? "Mensagem pronta. Toque em cada contato para enviar. Em caso grave, ligue para o SAMU, um nove dois."
+        : "Você ainda não tem contatos cadastrados. Ligue para o SAMU, um nove dois."
+    );
   };
 
   return (
@@ -44,9 +55,10 @@ const SOSScreen = ({ contacts, setScreen }) => {
             color={C.accent}
             icon="sos"
             onClick={handleSend}
+            disabled={sending}
             style={{ fontSize: 22, padding: "22px 0", borderRadius: 20 }}
           >
-            PEDIR AJUDA AGORA
+            {sending ? "PREPARANDO..." : "PEDIR AJUDA AGORA"}
           </Btn>
 
           <p style={{ textAlign: "center", fontSize: 16, color: C.textMuted }}>Ou ligue diretamente:</p>
@@ -88,14 +100,50 @@ const SOSScreen = ({ contacts, setScreen }) => {
           )}
         </>
       ) : (
-        <div style={{ textAlign: "center", padding: "40px 0" }}>
-          <div style={{ fontSize: 64, marginBottom: 20 }}>✅</div>
-          <p style={{ fontSize: 24, fontWeight: 800, color: C.primary, margin: "0 0 12px" }}>
-            Pedido enviado!
-          </p>
-          <p style={{ fontSize: 18, color: C.textMuted, margin: "0 0 32px" }}>
-            Seus contatos foram avisados. Fique calmo — a ajuda está a caminho.
-          </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ textAlign: "center", padding: "16px 0 4px" }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>📨</div>
+            <p style={{ fontSize: 22, fontWeight: 800, color: C.primary, margin: "0 0 8px" }}>
+              Mensagem pronta!
+            </p>
+            <p style={{ fontSize: 17, color: C.textMuted, margin: 0 }}>
+              Toque em cada contato abaixo para enviar. O envio só acontece depois que você confirmar no aplicativo que abrir.
+            </p>
+          </div>
+
+          <a href="tel:192" style={{ textDecoration: "none" }}>
+            <Btn full color={C.accent} icon="phone" style={{ fontSize: 20, padding: "18px 0", borderRadius: 18 }}>
+              Caso grave: ligar SAMU — 192
+            </Btn>
+          </a>
+
+          {contacts.length > 0 ? (
+            <Card>
+              {contacts.map((c) => (
+                <div key={c.id} style={{ padding: "12px 0", borderBottom: `1px solid ${C.border}` }}>
+                  <p style={{ margin: "0 0 10px", fontSize: 18, fontWeight: 700 }}>{c.name}</p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <a href={whatsappLink(c.phone, message)} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+                      <Btn sm color={C.primary}>WhatsApp</Btn>
+                    </a>
+                    <a href={smsLink(c.phone, message)} style={{ textDecoration: "none" }}>
+                      <Btn sm color={C.blue}>SMS</Btn>
+                    </a>
+                    <a href={`tel:${c.phone}`} style={{ textDecoration: "none" }}>
+                      <Btn sm color={C.accent}>Ligar</Btn>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          ) : (
+            <Card>
+              <p style={{ margin: 0, fontSize: 17 }}>
+                Você ainda não tem contatos cadastrados. Cadastre na aba Contatos para usar o envio rápido.
+              </p>
+            </Card>
+          )}
+
           <Btn onClick={() => { setSent(false); setScreen("home"); }} color={C.primary} full>
             Voltar ao início
           </Btn>

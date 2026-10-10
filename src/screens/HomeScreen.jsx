@@ -2,7 +2,7 @@ import { C } from "../tokens/colors";
 import { Card } from "../components/UI";
 import Icon from "../components/Icon";
 
-const HomeScreen = ({ setScreen, reminders, contacts }) => {
+const HomeScreen = ({ setScreen, reminders }) => {
   const now = new Date();
   const hour = now.getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
